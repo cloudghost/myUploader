@@ -103,7 +103,8 @@ func generateObjectName(name string) string {
 
 // todo too many args could extract some to global variable
 func monitor(cmd *exec.Cmd, stopc chan int, client *minio.Client, dstDir string, limit int64, bucketPrefix string) error {
-	inc := time.After(1 * time.Second)
+	//inc := time.After(1 * time.Second)
+	ticker := time.NewTicker(1 * time.Second)
 	for {
 		select {
 		case <-stopc:
@@ -111,9 +112,10 @@ func monitor(cmd *exec.Cmd, stopc chan int, client *minio.Client, dstDir string,
 			if err := readFile(client, dstDir); err != nil {
 				return err
 			}
+			ticker.Stop()
 			stopc<-1
 			return nil
-		case <-inc:
+		case <- ticker.C:
 			log.Println("inc")
 			over, err := overLimit(dstDir, limit)
 			if err != nil {
@@ -132,7 +134,7 @@ func monitor(cmd *exec.Cmd, stopc chan int, client *minio.Client, dstDir string,
 					return err
 				}
 			}
-			inc = time.After(1 * time.Second)
+			//inc = time.After(1 * time.Second)
 		}
 	}
 }

@@ -196,7 +196,9 @@ func main() {
 		err := monitor(cmd, mydumperFinish, minioClient, *dstDir, *limit, bucketName)
 		_ = cmd.Process.Kill()
 		_ = os.RemoveAll(*dstDir)
-		log.Fatal(err)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}()
 	if err = cmd.Wait(); err != nil {
 		_ = os.RemoveAll(*dstDir)

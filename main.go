@@ -102,9 +102,9 @@ func generateObjectName(name string) string {
 }
 
 // todo too many args could extract some to global variable
-func monitor(cmd *exec.Cmd, stopc chan int, client *minio.Client, dstDir string, limit int64, bucketPrefix string) error {
-	//inc := time.After(1 * time.Second)
-	ticker := time.NewTicker(1 * time.Second)
+func monitor(cmd *exec.Cmd, stopc chan int, client *minio.Client, dstDir string, limit int64) error {
+	inc := time.After(1 * time.Second)
+	//ticker := time.NewTicker(1 * time.Second)
 	for {
 		select {
 		case <-stopc:
@@ -112,11 +112,11 @@ func monitor(cmd *exec.Cmd, stopc chan int, client *minio.Client, dstDir string,
 			if err := readFile(client, dstDir); err != nil {
 				return err
 			}
-			ticker.Stop()
+			//ticker.Stop()
 			stopc<-1
 			return nil
-		case <- ticker.C:
-			log.Println("inc")
+		case <- inc:
+			//log.Println("inc")
 			over, err := overLimit(dstDir, limit)
 			if err != nil {
 				return err
@@ -134,7 +134,7 @@ func monitor(cmd *exec.Cmd, stopc chan int, client *minio.Client, dstDir string,
 					return err
 				}
 			}
-			//inc = time.After(1 * time.Second)
+			inc = time.After(1 * time.Second)
 		}
 	}
 }
@@ -193,7 +193,7 @@ func main() {
 	}
 	mydumperFinish := make(chan int)
 	go func() {
-		err := monitor(cmd, mydumperFinish, minioClient, *dstDir, *limit, bucketName)
+		err := monitor(cmd, mydumperFinish, minioClient, *dstDir, *limit)
 		defer cmd.Process.Kill()
 		defer os.RemoveAll(*dstDir)
 		if err != nil {
